@@ -26,10 +26,14 @@ function beep() {
     gainNode.connect(audioCtx.destination);
 
     gainNode.gain.value = volume;
-    oscillator.frequency.value = frequency;
+    oscillator.frequency.value = 300;    
     oscillator.type = type;
 
     oscillator.start();
+
+    // https://teropa.info/blog/2016/08/10/frequency-and-pitch.html
+    setTimeout(() => oscillator.frequency.value = oscillator.frequency.value / 2.0, 1000);
+    setTimeout(() => oscillator.frequency.value = oscillator.frequency.value / 2.0, 2000);
 
     setTimeout(
         function () {
