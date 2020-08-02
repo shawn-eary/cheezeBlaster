@@ -1,8 +1,4 @@
 // https://stackoverflow.com/questions/879152/how-do-i-make-javascript-beep
-audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-show();
-
 function show() {
     frequency = document.getElementById("fIn").value;
     document.getElementById("fOut").innerHTML = frequency + ' Hz';
