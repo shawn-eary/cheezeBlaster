@@ -7,12 +7,14 @@
 // https://www.w3schools.com/js/js_arrays.asp
 var bombs = [];
 
+
 // https://stackoverflow.com/questions/879152/how-do-i-make-javascript-beep
+// https://stackoverflow.com/questions/14308029/playing-a-chord-with-oscillatornodes-using-the-web-audio-api
 function start() {
-    // Create up one bomb
+    // Create 2 two 4 bombs
     // https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_random
-    // var numBombs = Math.floor(Math.random() * 10.0) + 1;
-    var numBombs = 2;
+    var numBombs = Math.floor(Math.random() * 2.0) + 2;
+    // var numBombs = 2;
 
     for (var i = 0; i < numBombs; i++) {
         // Create a bomb between 400 and 800 ("Martian Feet") - Yeah Whatever..
@@ -29,16 +31,18 @@ function start() {
     }
 
     // Create the oscillators for the bombs
-    var someGainNode;
+    var someGain;
     var someBomb;
+    var curBombOscillator;
     for (var j = 0; j < bombs.length; j++) {
         someBomb = bombs[j];
-        someGainNode = audioCtx.createGain();
 
-        var curBombOscillator = someBomb.oscillator;
-        curBombOscillator.connect(someGainNode);
-        someGainNode.connect(audioCtx.destination);
-        someGainNode.gain.value = 0.5;
+        // https://middleearmedia.com/web-audio-api-oscillators/
+        curBombOscillator = someBomb.oscillator;
+        someGain = audioCtx.createGain();
+        curBombOscillator.connect(someGain);
+        someGain.gain.value = 0.1;
+        someGain.connect(audioCtx.destination);
         curBombOscillator.type = 'sine';
         curBombOscillator.frequency.value = someBomb.elevation;
         curBombOscillator.start();
