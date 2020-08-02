@@ -12,7 +12,7 @@ function start() {
     // Create up one bomb
     // https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_random
     // var numBombs = Math.floor(Math.random() * 10.0) + 1;
-    var numBombs = 1;
+    var numBombs = 2;
 
     for (var i = 0; i < numBombs; i++) {
         // Create a bomb between 400 and 800 ("Martian Feet") - Yeah Whatever..
