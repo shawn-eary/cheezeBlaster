@@ -1,0 +1,26 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script src="./js/synth.js" type="text/javascript"></script>
+</head>
+<body>
+    <!-- https://stackoverflow.com/questions/879152/how-do-i-make-javascript-beep -->
+    frequency
+    <input type="range" id="fIn" min="40" max="6000" oninput="show()" />
+    <span id="fOut"></span><br>
+    type
+    <input type="range" id="tIn" min="0" max="3" oninput="show()" />
+    <span id="tOut"></span><br>
+    volume
+    <input type="range" id="vIn" min="0" max="100" oninput="show()" />
+    <span id="vOut"></span><br>
+    duration
+    <input type="range" id="dIn" min="1" max="5000" oninput="show()" />
+    <span id="dOut"></span>
+    <br>
+    <button onclick='beep();'>Play</button>
+</body>
+</html>
