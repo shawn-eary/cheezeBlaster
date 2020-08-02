@@ -1,25 +1,46 @@
 // https://stackoverflow.com/questions/879152/how-do-i-make-javascript-beep
 function start() {
-    var oscillator = audioCtx.createOscillator();
-    var gainNode = audioCtx.createGain();
+    // Create up to ten bombs
+    // https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_random
+    var numBombs = Math.floor(Math.random() * 10.0) + 1;
 
-    oscillator.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
+    // https://www.w3schools.com/js/js_arrays.asp
+    var bombs = [];
+    for (var i = 0; i < numBombs; i++) {
+        // Create a bomb between 400 and 800 ("Martian Feet") - Yeah Whatever..
+        // https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_random
+        var bombElevation = Math.floor(Math.random() * 400.0) + 400.0;
 
-    gainNode.gain.value = 0.5;
-    oscillator.frequency.value = 300;
-    oscillator.type = 'sine';
+        // https://www.w3schools.com/js/js_objects.asp
+        var someBomb = { elevation: bombElevation};
+        bombs.push(someBomb);
+    }
 
-    oscillator.start();
+    // Create the oscillators for the bombs
+    var someOscillator;
+    var someGainNode;
+    var someBomb;
+    for (var j = 0; j < bombs.length; j++) {
+        someBomb = bombs[j];
+        someOscillator = audioCtx.createOscillator();
+        someGainNode = audioCtx.createGain();
 
-    // https://teropa.info/blog/2016/08/10/frequency-and-pitch.html
-    setTimeout(() => oscillator.frequency.value = oscillator.frequency.value / 2.0, 1000);
-    setTimeout(() => oscillator.frequency.value = oscillator.frequency.value / 2.0, 2000);
+        someOscillator.connect(someGainNode);
+        someGainNode.connect(audioCtx.destination);
+        someGainNode.gain.value = 0.5;
+        someOscillator.type = 'sine';
+        someOscillator.frequency.value = someBomb.elevation;
+        someOscillator.start();
 
-    setTimeout(
-        function () {
-            oscillator.stop();
-        },
-        5000
-    );
+        // https://teropa.info/blog/2016/08/10/frequency-and-pitch.html
+        setTimeout(() => someOscillator.frequency.value = oscillator.frequency.value / 2.0, 1000);
+        setTimeout(() => someOscillator.frequency.value = oscillator.frequency.value / 2.0, 2000);
+
+        setTimeout(
+            function () {
+                someOscillator.stop();
+            },
+            5000
+        );
+    }
 };
