@@ -1,33 +1,14 @@
 // https://stackoverflow.com/questions/879152/how-do-i-make-javascript-beep
-function show() {
-    frequency = document.getElementById("fIn").value;
-    document.getElementById("fOut").innerHTML = frequency + ' Hz';
-
-    switch (document.getElementById("tIn").value * 1) {
-        case 0: type = 'sine'; break;
-        case 1: type = 'square'; break;
-        case 2: type = 'sawtooth'; break;
-        case 3: type = 'triangle'; break;
-    }
-    document.getElementById("tOut").innerHTML = type;
-
-    volume = document.getElementById("vIn").value / 100;
-    document.getElementById("vOut").innerHTML = volume;
-
-    duration = document.getElementById("dIn").value;
-    document.getElementById("dOut").innerHTML = duration + ' ms';
-}
-
-function beep() {
+function start() {
     var oscillator = audioCtx.createOscillator();
     var gainNode = audioCtx.createGain();
 
     oscillator.connect(gainNode);
     gainNode.connect(audioCtx.destination);
 
-    gainNode.gain.value = volume;
-    oscillator.frequency.value = 300;    
-    oscillator.type = type;
+    gainNode.gain.value = 0.5;
+    oscillator.frequency.value = 300;
+    oscillator.type = 'sine';
 
     oscillator.start();
 
@@ -39,6 +20,6 @@ function beep() {
         function () {
             oscillator.stop();
         },
-        duration
+        5000
     );
 };
