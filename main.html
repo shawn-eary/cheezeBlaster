@@ -1,5 +1,31 @@
 ﻿<!DOCTYPE html>
 
+<!--
+MIT LICENSE
+https://mit-license.org/
+
+Copyright © 2020 Shawn Eary
+
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation
+files(the “Software”), to deal in the Software without restriction,
+including without limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and / or sell copies of the Software,
+and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN
+NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
+THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-->
+
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8" />
@@ -10,15 +36,42 @@
         $( document ).ready(function() {
             // https://stackoverflow.com/questions/879152/how-do-i-make-javascript-beep
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            initAudio();
         });
     </script>
 </head>
 <body>
     <p>
     Make sure you turn your volume down before you click
-    "Drop some 'Bombs'" you may find the generated tones
+    "Drop some 'Bombs'".  You may find the generated tones
     "annoying"...
     </p>
-    <button onclick='start();'>Drop some "Bombs"</button>
+    <p>
+    If the code freaks out and you can't stand the
+    sound, close the tab/browser or hit the refresh button
+    which used to be also connected to F5.
+    </p>
+    <p>
+    I am not responsible for any damange this 
+    hacked together code may invoke on your
+    electronic devices or mental well being...
+    </p>
+    <p>
+    This is supposed to be a game someday, but I'm easily
+    distracted.  This code is best run on your local PC
+    right now, but it will very likely be put into my
+    personal website some day.
+    </p>
+    <p>
+    You don't need Visual Studio to make this work.  Just
+    Notepad and a decent internet browser like Chrome, FireFox
+    or Microsoft's Chromium based Edge.  I don't know if this works
+    on old school Edge or not.  Forget traying Internet Explorer.
+    Internet Explorer does not support the Web Audio API<br />
+    <a href="https://developer.mozilla.org/en-US/docs/Web/API/OscillatorNode" target="_blank">
+    https://developer.mozilla.org/en-US/docs/Web/API/OscillatorNode
+    </a>
+    </p>
+    <button onclick='dropBombs();'>Drop some "Bombs"</button>
 </body>
 </html>
