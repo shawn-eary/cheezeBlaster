@@ -13,12 +13,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "js", "js", "{5E554FE0-69CD-
 		js\synth.js = js\synth.js
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "third-party", "third-party", "{CACC9706-2811-441A-BF49-C55D226CDF6B}"
+	ProjectSection(SolutionItems) = preProject
+		README.txt = README.txt
+		js\third-party\svg.min.js = js\third-party\svg.min.js
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{5E554FE0-69CD-4038-B469-C0214D5A3802} = {92B5E6AE-5812-42E0-BDC3-D7D5A78315A6}
+		{CACC9706-2811-441A-BF49-C55D226CDF6B} = {5E554FE0-69CD-4038-B469-C0214D5A3802}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1186F4B7-BC7C-4134-8125-A239C57B1267}

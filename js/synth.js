@@ -24,6 +24,11 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+
+// https://svgjs.com/docs/3.0/getting-started/
+// SVG Context
+var draw;
+
 /* Higher sub levels will eventually indicated more
  * difficult play.  Hard code to level 3 right now.
  * This should always be less than cNUM_MAX_BOMBS but
@@ -60,13 +65,22 @@ function makeBomb() {
 
     someOscillator.start();
 
+    // https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_random
+    var bombX = Math.floor(Math.random() * 400.0);
+
+    // https://svgjs.com/docs/3.0/getting-started/
+    var bombImage =
+        draw.rect(10, 10).fill('#f06');
+
     // https://www.w3schools.com/js/js_objects.asp
     var someBomb = {
         elevation: bombElevation,
         originalElevation: bombElevation,
         oscillator: someOscillator, 
         gain: someGain, 
-        active: true
+        active: true, 
+        x: bombX,
+        img: bombImage
     };
     bombs.push(someBomb);
 }
@@ -99,6 +113,10 @@ function nukeDeadBombs() {
 // https://stackoverflow.com/questions/879152/how-do-i-make-javascript-beep
 // https://stackoverflow.com/questions/14308029/playing-a-chord-with-oscillatornodes-using-the-web-audio-api
 function begin() {
+    // initialize SVG.js
+    // SVG Context
+    draw = SVG().addTo('body');
+
     // Run every "frame" which I guess is
     // every 60th of a second...
     setInterval(updateBombs, 1000.0 / 60.0);
@@ -174,6 +192,10 @@ function updateBombs() {
             // https://teropa.info/blog/2016/08/10/frequency-and-pitch.html
             var curBomb = bombs[j];
             curBomb.oscillator.frequency.value = curBomb.elevation;
+
+            // https://svgjs.com/docs/3.0/getting-started/
+            var bombImage = curBomb.img;
+            bombImage.move(curBomb.x, curBomb.elevation);
 
             // Turn the volume for the oscillator off when the 
             // "bomb" gets below 50 "Martian Feet"
