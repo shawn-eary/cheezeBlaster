@@ -24,10 +24,15 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-
 // https://svgjs.com/docs/3.0/getting-started/
-// SVG Context
 var draw;
+
+var elevationTextObj;
+
+// https://jsfiddle.net/wout/ncb3w5Lv/1/
+// define document width and height
+var gWidth = 450;
+var gHeight = 300;
 
 /* Higher sub levels will eventually indicated more
  * difficult play.  Hard code to level 3 right now.
@@ -69,8 +74,20 @@ function makeBomb() {
     var bombX = Math.floor(Math.random() * 400.0);
 
     // https://svgjs.com/docs/3.0/getting-started/
-    var bombImage =
-        draw.rect(10, 10).fill('#f06');
+    var bombImage = draw.rect(10, 10);
+
+    // https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_random
+    var colorIndex = Math.floor(Math.random() * 4.0);
+    if (colorIndex > 2.9) {
+        bombImage.fill('#f06');
+    } else if (colorIndex > 1.9) {
+        bombImage.fill('#0f6');
+    } else if (colorIndex > 0.9) {
+        bombImage.fill('#60f');
+    } else {
+        bombImage.fill('#3ff');
+    }
+    
 
     // https://www.w3schools.com/js/js_objects.asp
     var someBomb = {
@@ -113,9 +130,33 @@ function nukeDeadBombs() {
 // https://stackoverflow.com/questions/879152/how-do-i-make-javascript-beep
 // https://stackoverflow.com/questions/14308029/playing-a-chord-with-oscillatornodes-using-the-web-audio-api
 function begin() {
+    // https://svgjs.com/docs/3.0/tutorials/
+    // create SVG document and set its size
+    // var draw = SVG('#gameArea').size(gWidth, gHeight);
+    // draw.viewbox(0, 0, gWidth, gHeight);
+    $('#thisShouldReallyBeSomePopup').hide();
+
+    // https://svgjs.com/docs/3.0/getting-started/
     // initialize SVG.js
     // SVG Context
-    draw = SVG().addTo('body');
+    draw = SVG().addTo('body').size(gWidth, gHeight);
+    var background = draw.rect(gWidth, gHeight);
+    background.move(0, 0);
+    background.fill('#000');
+
+    // https://api.jquery.com/append/#:~:text=A%20function%20that%20returns%20an%20HTML%20string%2C%20DOM,refers%20to%20the%20current%20element%20in%20the%20set.
+    $('#body').append(
+        "<p>" +
+        "Click Refresh, Press F5 or " +
+        "close your bowser windows to " +
+        "stop this silly 'program'" + 
+        "</p>"
+    );
+
+    // https://svgjs.com/docs/3.0/shape-elements/#svg-text
+    elevationTextObj = draw.text("Elevations:");
+    elevationTextObj.move(0, 0);
+    elevationTextObj.fill("#FFF");
 
     // Run every "frame" which I guess is
     // every 60th of a second...
@@ -146,6 +187,7 @@ function getTotalBombLifefactor() {
 }
 
 function updateBombs() {
+
     // "Garbage collect" dead bombs
     nukeDeadBombs();
 
@@ -179,6 +221,7 @@ function updateBombs() {
         }
     }
 
+    var elevationText = "";
     for (var j = 0; j < bombs.length; j++) {
         curBomb = bombs[j];
 
@@ -188,6 +231,9 @@ function updateBombs() {
         // to
         if (curBomb.active == true) {
             curBomb.elevation = curBomb.elevation - (80.0 / 60.0);
+
+            // https://stackoverflow.com/questions/7641818/how-can-i-remove-the-decimal-part-from-javascript-number            
+            elevationText += Math.floor(curBomb.elevation) + " ";
 
             // https://teropa.info/blog/2016/08/10/frequency-and-pitch.html
             var curBomb = bombs[j];
@@ -204,4 +250,7 @@ function updateBombs() {
             } 
         }
     }
+    
+    // https://svgjs.com/docs/3.0/shape-elements/#svg-text
+    elevationTextObj.text("Elevations: " + elevationText);
 }
