@@ -15,7 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "js", "js", "{5E554FE0-69CD-
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "third-party", "third-party", "{CACC9706-2811-441A-BF49-C55D226CDF6B}"
 	ProjectSection(SolutionItems) = preProject
-		README.txt = README.txt
+		js\third-party\README.txt = js\third-party\README.txt
 		js\third-party\svg.min.js = js\third-party\svg.min.js
 	EndProjectSection
 EndProject
