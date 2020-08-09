@@ -31,8 +31,12 @@ var elevationTextObj;
 
 // https://jsfiddle.net/wout/ncb3w5Lv/1/
 // define document width and height
-var gWidth = 450;
-var gHeight = 300;
+var gWidth = 800;
+var gHeight = 600;
+
+var bombdarWidth = gWidth * 0.1;
+
+var impactElevation = gHeight * 0.05;
 
 /* Higher sub levels will eventually indicated more
  * difficult play.  Hard code to level 3 right now.
@@ -144,6 +148,15 @@ function begin() {
     background.move(0, 0);
     background.fill('#000');
 
+    // Draw "grass"
+    var grassWidth = gWidth - bombdarWidth;
+    var grassHeight = impactElevation;
+    var grass = draw.rect(grassWidth, impactElevation);
+    var grassX = bombdarWidth;
+    var grassY = gHeight - impactElevation;
+    grass.move(grassX, grassY);
+    grass.fill("#20814C");
+
     // https://api.jquery.com/append/#:~:text=A%20function%20that%20returns%20an%20HTML%20string%2C%20DOM,refers%20to%20the%20current%20element%20in%20the%20set.
     $('#body').append(
         "<p>" +
@@ -155,7 +168,7 @@ function begin() {
 
     // https://svgjs.com/docs/3.0/shape-elements/#svg-text
     elevationTextObj = draw.text("Elevations:");
-    elevationTextObj.move(0, 0);
+    elevationTextObj.move(bombdarWidth, 0);
     elevationTextObj.fill("#FFF");
 
     // Run every "frame" which I guess is
@@ -242,7 +255,7 @@ function updateBombs() {
             // https://svgjs.com/docs/3.0/getting-started/
             var bombImage = curBomb.img;
 
-            var physBombCord = logicalToPhysical(
+            var physBombCord = logicalToPlayArea(
                 {
                     x: curBomb.x,
                     y: curBomb.elevation
@@ -255,7 +268,7 @@ function updateBombs() {
 
             // Turn the volume for the oscillator off when the 
             // "bomb" gets below 50 "Martian Feet"
-            if (curBomb.elevation < 50) {
+            if (curBomb.elevation < impactElevation) {
                 curBomb.active = false;
             } 
         }
@@ -265,8 +278,8 @@ function updateBombs() {
     elevationTextObj.text("Elevations: " + elevationText);
 }
 
-function logicalToPhysical(c) {
-    var physX = c.x;
+function logicalToPlayArea(c) {
+    var physX = c.x + bombdarWidth;
     var physY = gHeight - c.y;
     var physical = {
         x: physX,
