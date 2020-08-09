@@ -29,12 +29,23 @@ var draw;
 
 var elevationTextObj;
 
+var minElevation = 400.0;
+var elevationRange = 400.0;
+var maxElevation = minElevation + elevationRange;
+
 // https://jsfiddle.net/wout/ncb3w5Lv/1/
 // define document width and height
 var gWidth = 800;
 var gHeight = 600;
 
 var bombdarWidth = gWidth * 0.1;
+
+var playAreaWidth = gWidth - bombdarWidth;
+
+// The Bombda is always going to be small so
+// just pick a small but reasonable width
+// and height
+var bombdarImageWidth = 2;
 
 var impactElevation = gHeight * 0.05;
 
@@ -59,7 +70,7 @@ const cNUM_MAX_BOMBS = 5
 function makeBomb() {
     // Create a bomb between 400 and 800 ("Martian Feet") - Yeah Whatever..
     // https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_random
-    var bombElevation = Math.floor(Math.random() * 400.0) + 400.0;
+    var bombElevation = Math.floor(Math.random() * elevationRange) + minElevation;
 
     // https://stackoverflow.com/questions/879152/how-do-i-make-javascript-beep
     // Set up bomb oscillator and gain
@@ -80,6 +91,11 @@ function makeBomb() {
     // https://svgjs.com/docs/3.0/getting-started/
     var bombImage = draw.rect(10, 10);
 
+    // Cheat and assume.  We have plenty of vertical
+    // realestate in the Bombdar so just assign the
+    // height to bombdarImageWidth
+    var bombdarImage = draw.rect(bombdarImageWidth, bombdarImageWidth);
+
     // https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_random
     var colorIndex = Math.floor(Math.random() * 4.0);
     if (colorIndex > 2.9) {
@@ -91,6 +107,7 @@ function makeBomb() {
     } else {
         bombImage.fill('#3ff');
     }
+    bombdarImage.fill('#ddd');
     
 
     // https://www.w3schools.com/js/js_objects.asp
@@ -101,7 +118,8 @@ function makeBomb() {
         gain: someGain, 
         active: true, 
         x: bombX,
-        img: bombImage
+        img: bombImage,
+        bImg: bombdarImage
     };
     bombs.push(someBomb);
 }
@@ -156,6 +174,11 @@ function begin() {
     var grassY = gHeight - impactElevation;
     grass.move(grassX, grassY);
     grass.fill("#20814C");
+
+    // Draw Bombdar background
+    var bombdar = draw.rect(bombdarWidth, gHeight);
+    bombdar.move(0, 0);
+    bombdar.fill("#222");
 
     // https://api.jquery.com/append/#:~:text=A%20function%20that%20returns%20an%20HTML%20string%2C%20DOM,refers%20to%20the%20current%20element%20in%20the%20set.
     $('#body').append(
@@ -254,6 +277,7 @@ function updateBombs() {
 
             // https://svgjs.com/docs/3.0/getting-started/
             var bombImage = curBomb.img;
+            var bombdarImage = curBomb.bImg;
 
             var physBombCord = logicalToPlayArea(
                 {
@@ -264,6 +288,17 @@ function updateBombs() {
             bombImage.move(
                 physBombCord.x,
                 physBombCord.y
+            );
+
+            var physBombCord2 = logicalToBombdarArea(
+                {
+                    x: curBomb.x,
+                    y: curBomb.elevation
+                }
+            );
+            bombdarImage.move(
+                physBombCord2.x,
+                physBombCord2.y
             );
 
             // Turn the volume for the oscillator off when the 
@@ -280,6 +315,18 @@ function updateBombs() {
 
 function logicalToPlayArea(c) {
     var physX = c.x + bombdarWidth;
+    var physY = gHeight - c.y;
+    var physical = {
+        x: physX,
+        y: physY
+    };
+    return physical;
+}
+
+
+function logicalToBombdarArea(c) {
+    var physX = c.x / playAreaWidth * bombdarWidth;
+    var scaledY = (c.y / maxElevation) * gHeight;
     var physY = gHeight - c.y;
     var physical = {
         x: physX,
