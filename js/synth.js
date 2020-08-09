@@ -241,7 +241,17 @@ function updateBombs() {
 
             // https://svgjs.com/docs/3.0/getting-started/
             var bombImage = curBomb.img;
-            bombImage.move(curBomb.x, curBomb.elevation);
+
+            var physBombCord = logicalToPhysical(
+                {
+                    x: curBomb.x,
+                    y: curBomb.elevation
+                }
+            );
+            bombImage.move(
+                physBombCord.x,
+                physBombCord.y
+            );
 
             // Turn the volume for the oscillator off when the 
             // "bomb" gets below 50 "Martian Feet"
@@ -254,3 +264,15 @@ function updateBombs() {
     // https://svgjs.com/docs/3.0/shape-elements/#svg-text
     elevationTextObj.text("Elevations: " + elevationText);
 }
+
+function logicalToPhysical(c) {
+    var physX = c.x;
+    var physY = gHeight - c.y;
+    var physical = {
+        x: physX,
+        y: physY
+    };
+    return physical;
+}
+
+
