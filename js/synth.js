@@ -29,14 +29,15 @@ var draw;
 
 var elevationTextObj;
 
-var minElevation = 400.0;
-var elevationRange = 400.0;
-var maxElevation = minElevation + elevationRange;
-
 // https://jsfiddle.net/wout/ncb3w5Lv/1/
 // define document width and height
 var gWidth = 800;
 var gHeight = 600;
+
+var minElevation = gHeight;
+var elevationRange = 400.0;
+var maxElevation = minElevation + elevationRange;
+
 
 var bombdarWidth = gWidth * 0.1;
 
@@ -179,6 +180,19 @@ function begin() {
     var bombdar = draw.rect(bombdarWidth, gHeight);
     bombdar.move(0, 0);
     bombdar.fill("#222");
+
+    // Draw a Bombdar Guideline
+    // https://svgjs.com/docs/3.0/shape-elements/#svg-line
+    var lineYMin = minElevation; 
+    var physBombCord2 = logicalToBombdarArea(
+        {
+            x: 0,
+            y: lineYMin
+        }
+    );
+    var bombdarGuideLine = draw.rect(bombdarWidth, 2);
+    bombdarGuideLine.move(0, physBombCord2.y);
+    bombdarGuideLine.fill("#eee");
 
     // https://api.jquery.com/append/#:~:text=A%20function%20that%20returns%20an%20HTML%20string%2C%20DOM,refers%20to%20the%20current%20element%20in%20the%20set.
     $('#body').append(
@@ -327,7 +341,7 @@ function logicalToPlayArea(c) {
 function logicalToBombdarArea(c) {
     var physX = c.x / playAreaWidth * bombdarWidth;
     var scaledY = (c.y / maxElevation) * gHeight;
-    var physY = gHeight - c.y;
+    var physY = gHeight - scaledY;
     var physical = {
         x: physX,
         y: physY
