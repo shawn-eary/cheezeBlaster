@@ -43,6 +43,9 @@ var bombdarWidth = gWidth * 0.1;
 
 var playAreaWidth = gWidth - bombdarWidth;
 
+var houseWidth = playAreaWidth / 20;
+var houseHeight = houseWidth;
+
 // The Bombda is always going to be small so
 // just pick a small but reasonable width
 // and height
@@ -66,7 +69,34 @@ var playerSubLevel = 3;
 var bombs = [];
 
 // https://stackoverflow.com/questions/62768780/how-feasible-is-it-to-use-the-oscillator-connect-and-oscillator-disconnect-m
-const cNUM_MAX_BOMBS = 5
+const cNUM_MAX_BOMBS = 5;
+
+function makeHouse(x) {
+    var houseImg = draw.rect(houseWidth, houseHeight);
+    var centeredX = x - (houseWidth / 2);
+    houseImg.fill('#F4E900');
+    var physBombCord = logicalToPlayArea(
+        {
+            x: centeredX,
+            y: impactElevation + houseHeight
+        }
+    );
+    houseImg.move(physBombCord.x, physBombCord.y);
+
+    var polyString =
+        x + "," + (houseHeight * 2) + " " +
+        x + houseWidth / 2 + "," + houseHeight + " " +
+        x - houseWidth / 2 + "," + houseHeight;
+    var houseTop = draw.polygon(polyString);
+    houseTop.fill('#FF0000');
+    var physBombCord2 = logicalToPlayArea(
+        {
+            x: centeredX,
+            y: impactElevation + houseHeight
+        }
+    );
+    houseTop.move(physBombCord2.x, physBombCord2.y);
+}
 
 function makeBomb() {
     // Create a bomb between 400 and 800 ("Martian Feet") - Yeah Whatever..
@@ -166,6 +196,9 @@ function begin() {
     var background = draw.rect(gWidth, gHeight);
     background.move(0, 0);
     background.fill('#000');
+
+    // Draw houses
+    makeHouse(100);
 
     // Draw "grass"
     var grassWidth = gWidth - bombdarWidth;
