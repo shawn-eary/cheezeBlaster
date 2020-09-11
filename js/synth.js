@@ -29,6 +29,9 @@ var draw;
 
 var elevationTextObj;
 
+/* Hard coded for now */
+const c_numHouses = 4;
+
 // https://jsfiddle.net/wout/ncb3w5Lv/1/
 // define document width and height
 var gWidth = 800;
@@ -71,7 +74,20 @@ var bombs = [];
 // https://stackoverflow.com/questions/62768780/how-feasible-is-it-to-use-the-oscillator-connect-and-oscillator-disconnect-m
 const cNUM_MAX_BOMBS = 5;
 
+function drawWindow(x, y) {
+    var window1 = draw.rect(houseWidth / 6, houseHeight / 6);
+    window1.fill('#3DD8FF');
+    var window1Cord = logicalToPlayArea(
+        {
+            x: x,
+            y: y
+        }
+    );
+    window1.move(window1Cord.x, window1Cord.y);
+}
+
 function makeHouse(x) {
+    // House Body
     var houseImg = draw.rect(houseWidth, houseHeight);
     var centeredX = x - (houseWidth / 2);
     houseImg.fill('#F4E900');
@@ -83,16 +99,24 @@ function makeHouse(x) {
     );
     houseImg.move(physBombCord.x, physBombCord.y);
 
-    var polyString =
-        x + "," + (houseHeight * 2) + " " +
-        x + houseWidth / 2 + "," + houseHeight + " " +
-        x - houseWidth / 2 + "," + houseHeight;
+    // Bad Windows
+    var windowElevation = impactElevation + (houseHeight * 7.0 / 8.0);
+    var window1x = x - (houseWidth / 4.0);
+    var window2x = x + (houseWidth / 4.0);
+    drawWindow(window1x, windowElevation);
+    drawWindow(window2x, windowElevation);
+
+    // Roof 
+    var polyString = "";
+    polyString += x + "," + houseHeight + " ";
+    polyString += x + houseWidth / 2 + "," + (houseHeight * 2) + " ";
+    polyString += x - houseWidth / 2 + "," + (houseHeight * 2);
     var houseTop = draw.polygon(polyString);
     houseTop.fill('#FF0000');
     var physBombCord2 = logicalToPlayArea(
         {
             x: centeredX,
-            y: impactElevation + houseHeight
+            y: impactElevation + (houseHeight*2)
         }
     );
     houseTop.move(physBombCord2.x, physBombCord2.y);
@@ -198,7 +222,11 @@ function begin() {
     background.fill('#000');
 
     // Draw houses
-    makeHouse(100);
+    var spacingBetweenHouses = playAreaWidth / (c_numHouses + 1);
+    for (var i = 0; i < c_numHouses; i++) {
+        var houseLoc = (i + 1) * spacingBetweenHouses;
+        makeHouse(houseLoc);
+    }    
 
     // Draw "grass"
     var grassWidth = gWidth - bombdarWidth;
