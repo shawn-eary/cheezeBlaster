@@ -154,7 +154,8 @@ function makeBomb() {
     someOscillator.start();
 
     // https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_random
-    var bombX = Math.floor(Math.random() * 400.0);
+    var bombX = Math.floor(Math.random() * playAreaWidth);
+    // var bombX = Math.floor(Math.random() * 400.0);
 
     // https://svgjs.com/docs/3.0/getting-started/
     var bombImage = draw.rect(gc_bombWidth, gc_bombHeight);
