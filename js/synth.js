@@ -2,11 +2,11 @@
 MIT LICENSE
 https://mit-license.org/
 
-Copyright © 2020 Shawn Eary
+Copyright (c) 2021, 2020 Shawn Eary
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation
-files(the “Software”), to deal in the Software without restriction,
+files(the ï¿½Softwareï¿½), to deal in the Software without restriction,
 including without limitation the rights to use, copy, modify, merge,
 publish, distribute, sublicense, and / or sell copies of the Software,
 and to permit persons to whom the Software is furnished to do so,
@@ -15,7 +15,7 @@ subject to the following conditions:
 The above copyright notice and this permission notice shall be included
 in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS
+THE SOFTWARE IS PROVIDED ï¿½AS ISï¿½, WITHOUT WARRANTY OF ANY KIND, EXPRESS
 OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN
 NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
@@ -24,18 +24,31 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
 THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+
+// #####################################################################
+// # BEGIN Constants                                                   #
+// #####################################################################
+var gWidth = 800;
+var gHeight = 600;
+
+// Hard coded for now 
+const c_numHouses = 4;
+const gc_bombWidth = 50;
+const gc_bombHeight = 20;
+// #####################################################################
+// # END Constants                                                     #
+// #####################################################################
+
 // https://svgjs.com/docs/3.0/getting-started/
 var draw;
 
 var elevationTextObj;
 
-/* Hard coded for now */
-const c_numHouses = 4;
+
 
 // https://jsfiddle.net/wout/ncb3w5Lv/1/
 // define document width and height
-var gWidth = 800;
-var gHeight = 600;
+
 
 var minElevation = gHeight;
 var elevationRange = 400.0;
@@ -144,15 +157,19 @@ function makeBomb() {
     var bombX = Math.floor(Math.random() * 400.0);
 
     // https://svgjs.com/docs/3.0/getting-started/
-    var bombImage = draw.rect(10, 10);
+    var bombImage = draw.rect(gc_bombWidth, gc_bombHeight);
 
     // Cheat and assume.  We have plenty of vertical
     // realestate in the Bombdar so just assign the
     // height to bombdarImageWidth
+    // NOTE: Bombdar is the Bomb "Radar"
     var bombdarImage = draw.rect(bombdarImageWidth, bombdarImageWidth);
 
     // https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_random
     var colorIndex = Math.floor(Math.random() * 4.0);
+    var digit1 = Math.floor(Math.random() * 10.0);
+    var digit2 = Math.floor(Math.random() * 10.0);
+    const sum = digit1 + digit2;
     if (colorIndex > 2.9) {
         bombImage.fill('#f06');
     } else if (colorIndex > 1.9) {
@@ -163,6 +180,16 @@ function makeBomb() {
         bombImage.fill('#3ff');
     }
     bombdarImage.fill('#ddd');
+
+    // https://svgjs.dev/docs/3.0/shape-elements/#svg-text
+    var bombString = digit1 + ' + ' + digit2;
+    var bombText = draw.text(
+        function(add) {
+            // Not sure what dx is supposed to do.  I need to be able
+            // to scale the background of the bomb to fit the text
+            add.tspan(bombString).fill('#fff').dx(80);
+        }
+    );
     
 
     // https://www.w3schools.com/js/js_objects.asp
@@ -174,7 +201,9 @@ function makeBomb() {
         active: true, 
         x: bombX,
         img: bombImage,
-        bImg: bombdarImage
+        bText: bombText,
+        bImg: bombdarImage,
+        bSum: (digit1 + digit2)
     };
     bombs.push(someBomb);
 }
@@ -352,6 +381,7 @@ function updateBombs() {
 
             // https://svgjs.com/docs/3.0/getting-started/
             var bombImage = curBomb.img;
+            var bombText = curBomb.bText;
             var bombdarImage = curBomb.bImg;
 
             var physBombCord = logicalToPlayArea(
@@ -361,6 +391,10 @@ function updateBombs() {
                 }
             );
             bombImage.move(
+                physBombCord.x,
+                physBombCord.y
+            );
+            bombText.move(
                 physBombCord.x,
                 physBombCord.y
             );
