@@ -1,12 +1,17 @@
 # cheezeBlaster
 
-Licensed via MIT License.  
+Licensed via MIT License.
 
-Just makes two to five sine wave sounds that are descending in pitch when the user clicks the "Start the Goofy 'Program'" button.  Not a whole lot there right now...
+<!---
+https://stackoverflow.com/questions/4823468/comments-in-markdown
+https://superuser.com/questions/1199393/is-it-possible-to-directly-embed-an-image-into-a-markdown-document
+-->
+![Demo Picture](/doc/demoPic.gif)
+
 
 Turn your volume <u>down</u> before you click the "Start the Goofy 'Program'" button.
 
-Hope to add graphics soon when I get a change to get there.
+Need to work on explosions of houses.
 
-Demo is at:
+Outdated Demo is at:
 <a href="https://www.utilars.com/Home/CheezeBlaster">https://www.utilars.com/Home/CheezeBlaster</a>
