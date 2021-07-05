@@ -166,19 +166,37 @@ function makeBomb() {
     var bombdarImage = draw.rect(bombdarImageWidth, bombdarImageWidth);
 
     // https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_random
-    var colorIndex = Math.floor(Math.random() * 4.0);
+    var colorIndex = Math.floor(Math.random() * 5.0);
     var digit1 = Math.floor(Math.random() * 10.0);
     var digit2 = Math.floor(Math.random() * 10.0);
     const sum = digit1 + digit2;
-    if (colorIndex > 2.9) {
-        bombImage.fill('#f06');
+    var color; 
+    var r;
+    var g;
+    var b;
+    if (colorIndex > 3.9) {
+        r = 6; g = 0; b = 100;
+    } else if (colorIndex > 2.9) {
+        r = 6; g = 97; b = 14;
     } else if (colorIndex > 1.9) {
-        bombImage.fill('#0f6');
+        r = 41; g = 97; b = 100;
     } else if (colorIndex > 0.9) {
-        bombImage.fill('#60f');
+        r = 94; g = 76; b = 90;
     } else {
-        bombImage.fill('#3ff');
+        r = 113; g = 255; b = 120;
+        // bombImage.fill(color);        
+        // bombImage.fill('#3ff');
     }
+    // https://stackoverflow.com/questions/2173229/how-do-i-write-a-rgb-color-value-in-javascript
+    var color = "rgb(" + r + ", " + g + ", " + b + ")";
+
+    // Not sure this is 100% accurate, but it's likely good
+    // enough for me...
+    // rjmunro
+    // https://stackoverflow.com/questions/596216/formula-to-determine-perceived-brightness-of-rgb-color
+    const Y = 0.375 * r + 0.5 * g + 0.125 * b;
+
+    bombImage.fill(color);
     bombdarImage.fill('#ddd');
 
     // https://svgjs.dev/docs/3.0/shape-elements/#svg-text
@@ -187,7 +205,13 @@ function makeBomb() {
         function(add) {
             // Not sure what dx is supposed to do.  I need to be able
             // to scale the background of the bomb to fit the text
-            add.tspan(bombString).fill('#fff').dx(80);
+            var whatDoesDXDo = 80;
+            
+            if (Y > (255.0 / 2.0)) {
+                add.tspan(bombString).fill('#000').dx(whatDoesDXDo);
+            } else {
+                add.tspan(bombString).fill('#fff').dx(whatDoesDXDo);
+            }            
         }
     );
     
