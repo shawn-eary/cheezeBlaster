@@ -44,6 +44,9 @@ var draw;
 
 var elevationTextObj;
 
+var frameUpdateId;
+var theEntireWorldHasBeenDestroyedByEvilWickedBrainwashingAliens = false;
+
 
 
 // https://jsfiddle.net/wout/ncb3w5Lv/1/
@@ -84,8 +87,58 @@ var playerSubLevel = 3;
 // https://www.w3schools.com/js/js_arrays.asp
 var bombs = [];
 
+var houses = [];
+
 // https://stackoverflow.com/questions/62768780/how-feasible-is-it-to-use-the-oscillator-connect-and-oscillator-disconnect-m
 const cNUM_MAX_BOMBS = 5;
+
+function numUnexplodedHouses() {
+    var count = 0;
+    for (i = 0; i < houses.length; i++) {
+        if (houses[i].hasBeenBlownToBits == false) {
+            count++;
+        }
+    }
+    return count;
+}
+
+function blowUpHouse(h) {
+    h.hasBeenBlownToBits = true;
+
+    // For now, just fade the house out
+    // Since that is easy. Can do better
+    // animations in the future
+    var houseParts = h.parts;
+    for (var i = 0; i < houseParts.length; i++) {
+        var aPart = houseParts[i];
+        // https://svgjs.dev/docs/3.0/animating/
+        aPart.animate(2000, 0, 'now').attr({ fill: '#000' })
+    }
+
+    // Need sound here too but that's later...
+}
+
+function bombHitHouse(b, h) {
+    var bombXMin = b.x;
+    var bombXMax = b.x + gc_bombWidth;
+
+    var houseXMin = h.physCord.x;
+    var houseXMax = h.physCord.x + houseWidth;    
+
+    if (bombXMin > houseXMax) {
+        // Left edge of bomb exceeds this house's right X edge
+        // Bomb is to right of house
+        return false;
+    } else if (bombXMax < houseXMin) {
+        // Right edge of bomb preceeds this house's left X edge
+        // Bobm is to the left of house
+        return false;
+    } else {
+        // Bomb ain't to the right or the left of the house
+        // so it must have blown up the house
+        return true;
+    }
+}
 
 function drawWindow(x, y) {
     var window1 = draw.rect(houseWidth / 6, houseHeight / 6);
@@ -97,27 +150,34 @@ function drawWindow(x, y) {
         }
     );
     window1.move(window1Cord.x, window1Cord.y);
+    return window1;
 }
 
 function makeHouse(x) {
+    var houseParts = [];
+
     // House Body
     var houseImg = draw.rect(houseWidth, houseHeight);
     var centeredX = x - (houseWidth / 2);
     houseImg.fill('#F4E900');
-    var physBombCord = logicalToPlayArea(
+    var physHouseCord = logicalToPlayArea(
         {
             x: centeredX,
             y: impactElevation + houseHeight
         }
     );
-    houseImg.move(physBombCord.x, physBombCord.y);
+    houseImg.move(physHouseCord.x, physHouseCord.y);
+    houseParts.push(houseImg);
 
     // Bad Windows
     var windowElevation = impactElevation + (houseHeight * 7.0 / 8.0);
     var window1x = x - (houseWidth / 4.0);
     var window2x = x + (houseWidth / 4.0);
-    drawWindow(window1x, windowElevation);
-    drawWindow(window2x, windowElevation);
+    var someWindow; 
+    someWindow = drawWindow(window1x, windowElevation);
+    houseParts.push(someWindow);
+    someWindow = drawWindow(window2x, windowElevation);    
+    houseParts.push(someWindow);
 
     // Roof 
     var polyString = "";
@@ -133,6 +193,17 @@ function makeHouse(x) {
         }
     );
     houseTop.move(physBombCord2.x, physBombCord2.y);
+    houseParts.push(houseTop);
+
+    var someHouse = {
+        physCord: {
+            x: x,
+            y: impactElevation + houseHeight
+        },
+        parts: houseParts, 
+        hasBeenBlownToBits: false
+    };
+    houses.push(someHouse);
 }
 
 function makeBomb() {
@@ -233,16 +304,19 @@ function makeBomb() {
     bombs.push(someBomb);
 }
 
-function nukeDeadBombs() {
+function nukeBombs(justDeadOnes) {
     // Remove dead bombs
     // https://www.w3schools.com/js/js_arrays.asp
     var newBombs = [];
     for (var i = 0; i < bombs.length; i++) {
         var curBomb = bombs[i];
-        if (curBomb.active) {
+        if ((curBomb.active) && (justDeadOnes)) {
             newBombs.push(curBomb);
         } else {
-            // Dead bomb. Deactivate the oscillator
+            // This is either a Dead Bomb or the world
+            // had ended...
+
+            // Deactivate the oscillator
             curBomb.gain.value = 0.0;
             curBomb.oscillator.stop();
         }
@@ -325,7 +399,8 @@ function begin() {
 
     // Run every "frame" which I guess is
     // every 60th of a second...
-    setInterval(updateBombs, 1000.0 / 60.0);
+    // https://developer.mozilla.org/en-US/docs/Web/API/setInterval
+    frameUpdateId = setInterval(updateBombs, 1000.0 / 60.0);
 };
 
 function getNumActiveBombs() {
@@ -352,9 +427,30 @@ function getTotalBombLifefactor() {
 }
 
 function updateBombs() {
+    if(theEntireWorldHasBeenDestroyedByEvilWickedBrainwashingAliens) {
+        // https://developer.mozilla.org/en-US/docs/Web/API/setInterval
+        clearInterval(frameUpdateId);
+
+        // https://svgjs.dev/docs/3.0/shape-elements/#svg-text
+        var text = draw.text(
+            "The entire world has been destroyed by evil wicked\n" +
+            "brainwashing aliens. I'm sorry to give such a\n" +
+            "mellowdramatic ending. Now we should all run into\n" +
+            "the corner and cry like raving lunatics.\n" +
+            "(Make sure to get permission from your parents before" +
+            "doing that...)\n\n" + 
+            "Press F5 to restart.\n" + 
+            "Not that you would want too..."
+        );
+        text.fill('#FFF');
+        text.move(gWidth / 4.5, gHeight / 4.5); // Hack for now. Need better corrdinate determinations
+
+        nukeBombs(false);
+        return; 
+    }
 
     // "Garbage collect" dead bombs
-    nukeDeadBombs();
+    nukeBombs(true);
 
     // At any frame update, there is a small chance that
     // another bomb might be created.
@@ -439,7 +535,28 @@ function updateBombs() {
             // "bomb" gets below 50 "Martian Feet"
             if (curBomb.elevation < impactElevation) {
                 curBomb.active = false;
+
+                // See if the bomb hit a house
+                var houseHit = false;
+                for(var i = 0; ((i < houses.length) && (!houseHit)); i++) {
+                    var aHouse = houses[i];
+                    if ((aHouse.hasBeenBlownToBits == false) && 
+                        (bombHitHouse(curBomb, aHouse))) {
+
+                        blowUpHouse(aHouse);
+
+                        // Likely an example of premature optimization
+                        // on my part
+                        houseHit = true; 
+                    }
+                }                
             } 
+
+            // numUnexplodedHouses is not an efficient function
+            // but I don't care
+            if (numUnexplodedHouses() < 1) {
+                theEntireWorldHasBeenDestroyedByEvilWickedBrainwashingAliens = true;
+            }
         }
     }
     
