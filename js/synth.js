@@ -35,6 +35,42 @@ var gHeight = 600;
 const c_numHouses = 4;
 const gc_bombWidth = 50;
 const gc_bombHeight = 20;
+
+const gc_defaultHouseMass = 20.0;
+const gc_defaultHouseRotationalInertia = 10.0;
+const gc_defaultWindowMass = 2.0;
+const gc_defaultWindowRotationalInertia = 1.0;
+const gc_defaultRoofMass = 10.0;
+const gc_defaultRoofRotationalInertia = 2.0;
+
+const gc_floatingPointFudgeFactor = 0.01;
+
+// BEGIN: 
+// https://developer.mozilla.org/en-US/docs/web/javascript/reference/global_objects/math/sin
+const sine = Math.sin;
+const cos = Math.cos;
+const pi = Math.PI; 
+// https://developer.mozilla.org/en-US/docs/web/javascript/reference/global_objects/math/sin
+// END 
+
+const rand = Math.random();
+function getBoundedRandNum(min, max) {
+    var spread = max - min;
+    // https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_random
+    var returnValue = Math.floor(Math.random() * spread) + min;
+    return returnValue;
+}
+
+// Just picking numbers most out of thin air right now
+const gc_launch_angle_min = pi / 4.0;
+const gc_launch_angle_max = 3.0 * pi / 4.0;
+const gc_launch_magnitude_min = 20.0;
+const gc_launch_magnitude_max = 30.0;
+
+const gc_gravitational_acceleration = 2.0;
+
+const gc_launch_rotation_min = -10.0;
+const gc_launch_rotation_max = 10.0;
 // #####################################################################
 // # END Constants                                                     #
 // #####################################################################
@@ -112,7 +148,15 @@ function blowUpHouse(h) {
     for (var i = 0; i < houseParts.length; i++) {
         var aPart = houseParts[i];
         // https://svgjs.dev/docs/3.0/animating/
-        aPart.animate(2000, 0, 'now').attr({ fill: '#000' })
+        aPart.i.animate(2000, 0, 'now').attr({ fill: '#000' });
+        
+        var lA = getBoundedRandNum(gc_launch_angle_min, gc_launch_angle_max);
+        var lM = getBoundedRandNum(gc_launch_magnitude_min, gc_launch_magnitude_max);
+        var lR = getBoundedRandNum(gc_launch_rotation_min, gc_launch_rotation_max);
+
+        aPart.fx = lM * sine(lA);
+        aPart.fy = lM * cos(lA);
+        aPart.fr = lR;
     }
 
     // Need sound here too but that's later...
@@ -153,6 +197,28 @@ function drawWindow(x, y) {
     return window1;
 }
 
+function makeHousePart(i, m, rm, x, y, t) {
+    var someHousePart = {
+        i: i,      // Image
+        m: m,      // Mass
+        rm: rm,    // Rotational Inertia
+        x: x,      // x cord
+        y: y,      // y cord
+        r: 0,      // rotation position
+        fx: 0.0,   // force x
+        fy: 0.0,   // force y [Other than gravity]
+        fr: 0.0,   // rotational force
+        ax: 0.0,   // acceleration x
+        ay: 0.0,   // acceleration y
+        ar: 0.0,   // totational acceleration
+        vx: 0.0,   // velocity x
+        vy: 0.0,   // velocity y
+        vr: 0.0,   // rotational velocity
+        type: t    // "Window", "Roof", "Body"
+    }
+    return someHousePart;
+}
+
 function makeHouse(x) {
     var houseParts = [];
 
@@ -167,7 +233,18 @@ function makeHouse(x) {
         }
     );
     houseImg.move(physHouseCord.x, physHouseCord.y);
-    houseParts.push(houseImg);
+    
+    var someHousePart;
+    someHousePart = 
+        makeHousePart(
+            houseImg, 
+            gc_defaultHouseMass, 
+            gc_defaultHouseRotationalInertia, 
+            centeredX, 
+            impactElevation + houseHeight, 
+            "Body"
+        );
+    houseParts.push(someHousePart);
 
     // Bad Windows
     var windowElevation = impactElevation + (houseHeight * 7.0 / 8.0);
@@ -175,9 +252,27 @@ function makeHouse(x) {
     var window2x = x + (houseWidth / 4.0);
     var someWindow; 
     someWindow = drawWindow(window1x, windowElevation);
-    houseParts.push(someWindow);
+    someHousePart = 
+        makeHousePart(
+            someWindow, 
+            gc_defaultWindowMass, 
+            gc_defaultWindowRotationalInertia, 
+            window1x, 
+            windowElevation, 
+            "Window",
+        );
+    houseParts.push(someHousePart);
     someWindow = drawWindow(window2x, windowElevation);    
-    houseParts.push(someWindow);
+    someHousePart = 
+        makeHousePart(
+            someWindow, 
+            gc_defaultWindowMass, 
+            gc_defaultWindowRotationalInertia, 
+            window2x, 
+            windowElevation, 
+            "Window"
+        );
+    houseParts.push(someHousePart);
 
     // Roof 
     var polyString = "";
@@ -193,7 +288,16 @@ function makeHouse(x) {
         }
     );
     houseTop.move(physBombCord2.x, physBombCord2.y);
-    houseParts.push(houseTop);
+    someHousePart = 
+        makeHousePart(
+            houseTop, 
+            gc_defaultRoofMass, 
+            gc_defaultRoofRotationalInertia, 
+            centeredX, 
+            impactElevation + (houseHeight*2),
+            "Roof"
+        );
+    houseParts.push(someHousePart);
 
     var someHouse = {
         physCord: {
@@ -560,6 +664,84 @@ function updateBombs() {
         }
     }
     
+    // Cheat and Sneek in house animation here also
+    for (var k = 0; k < houses.length; k++) {
+        var someHouse = houses[k];
+        if (someHouse.hasBeenBlownToBits) {
+            // Need to update the physics for each house part
+            for(var l = 0; l < someHouse.parts.length; l++) {
+                var someHousePart = someHouse.parts[l];
+                var mass;
+                var rI; 
+                if (someHousePart.type === "Window") {
+                    mass = gc_defaultWindowMass;
+                    rI = gc_defaultWindowRotationalInertia;
+                } else if (someHousePart.type = "Roof") {
+                    mass = gc_defaultRoofMass;
+                    rI = gc_defaultRoofRotationalInertia;
+                } else {
+                    // Assume house body
+                    mass = gc_defaultHouseMass;
+                    rI = gc_defaultHouseRotationalInertia;
+                }
+
+                // For now, we are only dealing with impact forces
+                // except for gravity
+                var pFX = someHousePart.fx;
+                if (Math.abs(pFX) > gc_floatingPointFudgeFactor) {
+                    someHousePart.ax += pFX / mass;
+
+                    /* Since this is a impact force for now,
+                       set it back to zero */ 
+                    someHousePart.fx = 0.0; 
+                }
+                var pFY = someHousePart.fy;
+                if (Math.abs(pFY) > gc_floatingPointFudgeFactor) {
+                    someHousePart.ay += pFY / mass;                  
+
+                    /* Since this is a impact force for now,
+                       set it back to zero */ 
+                    someHousePart.fy = 0.0; 
+
+                    // Account for gravity
+                    someHousePart.ay -= gc_gravitational_acceleration;
+                }
+                var pFR = someHousePart.fr;
+                if (Math.abs(pFR) > gc_floatingPointFudgeFactor) {
+                    someHousePart.ar += pFR / rI;
+
+                    /* Since this is a impact force for now,
+                       set it back to zero */ 
+                    someHousePart.fr = 0.0; 
+                }
+
+                // Now update velocity and position based on the accelerations
+                // that were calculated
+                someHousePart.vx += someHousePart.ax;
+                someHousePart.vy += someHousePart.ay;
+                someHousePart.vr += someHousePart.ar;
+
+                someHousePart.x += someHousePart.vx;
+                someHousePart.y += someHousePart.vy;
+                someHousePart.r += someHousePart.vr;
+
+                var window1Cord = logicalToPlayArea(
+                    {
+                        x: someHousePart.x,
+                        y: someHousePart.y
+                    }
+                );
+                someHousePart.i.move(window1Cord.x, window1Cord.y);
+                someHousePart.i.rotate(someHousePart.r);
+            }
+
+            // Ideally, we would stop doing this at some point
+            // but i'll get to that later. I probably need
+            // to conver this little code to TypeScript before
+            // I drive myself crazy...
+        }
+    }
+
     // https://svgjs.com/docs/3.0/shape-elements/#svg-text
     elevationTextObj.text("Elevations: " + elevationText);
 }
