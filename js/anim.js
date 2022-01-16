@@ -57,6 +57,19 @@ function makeAmmoPod() {
     );
     ammoPodImage.move(physAmmoPodCord.x, physAmmoPodCord.y);
 
+    var theText = ammoIntVal;
+    var ammoPodText = draw.text(
+        function(add) {
+            // Not sure what dx is supposed to do.  I need to be able
+            // to scale the background of the bomb to fit the text
+            var whatDoesDXDo = 80;
+            add.tspan(theText).fill('#000').dx(whatDoesDXDo);
+        }
+    );
+    ammoPodText.move(
+        physAmmoPodCord.x, physAmmoPodCord.y
+    );
+
     // Sloppy. I should be using inheritance
     var ammoPod = {
         i: ammoPodImage,      // Image
@@ -74,6 +87,7 @@ function makeAmmoPod() {
         vx: 0.0,   // velocity x
         vy: 0.0,   // velocity y
         vr: 0.0,   // rotational velocity
+        podText: ammoPodText,
         number: ammoIntVal  // The answer the ammo pod holds
     }
 
