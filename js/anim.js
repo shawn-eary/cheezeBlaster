@@ -357,13 +357,34 @@ function makeBomb() {
     // We can't randomly pick digits any more
     // the sum now needs to add up to a value
     // that is used for one of the ammo pods
-    var digit1 = Math.floor(Math.random() * 10.0);
-    var digit2 = Math.floor(Math.random() * 10.0);
+    var digit1; // = Math.floor(Math.random() * 10.0);
+    var digit2; // = Math.floor(Math.random() * 10.0);
     
     // First, pick a number from the Ammo
     var index = Math.round(getBoundedRandNum(0, g_ammoPods.length));
     var num = g_ammoPods[index].number;
 
+    // Second, determine the value of one of the digits
+    var digitA;
+    if (num > 8) {
+        digitA = getBoundedRandNum(0, 9);
+    } else {
+        digitA = getBoundedRandNum(0, num);
+    }
+
+    // Third, the value of the second digit is the sum we want
+    // minus the first digit
+    var digitB = num - digitA;
+
+    // Lastly, swap the digits half of the time
+    var swapFactor = getBoundedRandNum(0, 2);
+    if(swapFactor > 1) {
+        digit1 = digitA;
+        digit2 = digitB;
+    } else {
+        digit1 = digitB;
+        digit2 = digitA;
+    }
 
 
 
