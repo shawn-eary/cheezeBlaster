@@ -106,7 +106,7 @@ var houseHeight = houseWidth;
 // and height
 var bombdarImageWidth = 2;
 
-var impactElevation = gHeight * 0.05;
+var impactElevation = gHeight * 0.10;
 
 /* Higher sub levels will eventually indicated more
  * difficult play.  Hard code to level 3 right now.
@@ -124,6 +124,11 @@ var playerSubLevel = 3;
 var bombs = [];
 
 var houses = [];
+
+var ammoPodWidth = playAreaWidth / 20;
+var ammoPodHeight = ammoPodWidth;
+var g_ammoPods = [];
+
 
 // https://stackoverflow.com/questions/62768780/how-feasible-is-it-to-use-the-oscillator-connect-and-oscillator-disconnect-m
 const cNUM_MAX_BOMBS = 5;
@@ -504,7 +509,7 @@ function begin() {
     // Run every "frame" which I guess is
     // every 60th of a second...
     // https://developer.mozilla.org/en-US/docs/Web/API/setInterval
-    frameUpdateId = setInterval(updateBombs, 1000.0 / 60.0);
+    frameUpdateId = setInterval(updateFrame, 1000.0 / 60.0);
 };
 
 function getNumActiveBombs() {
@@ -528,222 +533,6 @@ function getTotalBombLifefactor() {
         }
     }
     return totalLifeFactor;
-}
-
-function updateBombs() {
-    if(theEntireWorldHasBeenDestroyedByEvilWickedBrainwashingAliens) {
-        // https://developer.mozilla.org/en-US/docs/Web/API/setInterval
-        clearInterval(frameUpdateId);
-
-        // https://svgjs.dev/docs/3.0/shape-elements/#svg-text
-        var text = draw.text(
-            "The entire world has been destroyed by evil wicked\n" +
-            "brainwashing aliens. I'm sorry to give such a\n" +
-            "mellowdramatic ending. Now we should all run into\n" +
-            "the corner and cry like raving lunatics.\n" +
-            "(Make sure to get permission from your parents before" +
-            "doing that...)\n\n" + 
-            "Press F5 to restart.\n" + 
-            "Not that you would want too..."
-        );
-        text.fill('#FFF');
-        text.move(gWidth / 4.5, gHeight / 4.5); // Hack for now. Need better corrdinate determinations
-
-        nukeBombs(false);
-        return; 
-    }
-
-    // "Garbage collect" dead bombs
-    nukeBombs(true);
-
-    // At any frame update, there is a small chance that
-    // another bomb might be created.
-    // a) Never allow more bombs than the curent
-    //    playerSubLevel
-    // b) The probabity of annother bomb being created
-    //    should maybe be greatest when existing bombs
-    //    are "old"
-    // c) To keep from breaking the program, there should
-    //    never be more than cNUM_MAX_BOMBS
-    var numActiveBombs = getNumActiveBombs();
-    var totalBombLifeFactor = getTotalBombLifefactor();
-
-    // Hopefully this number will be from zero to 1...
-    var NTBLF = 0.0;
-    if (numActiveBombs > 0) {
-        NTBLF = totalBombLifeFactor / numActiveBombs;
-    }
-    
-    // https://www.w3schools.com/jsref/tryit.asp?filename=tryjsref_random
-    var randNumZeroToOne = Math.random();
-
-    if (randNumZeroToOne > NTBLF) {
-        // See if we can create a new bomb
-        if ((bombs.length <= playerSubLevel) &&
-            (bombs.length <= cNUM_MAX_BOMBS)) {
-
-            makeBomb();
-        }
-    }
-
-    var elevationText = "";
-    for (var j = 0; j < bombs.length; j++) {
-        curBomb = bombs[j];
-
-        // Only process active bombs.  This keeps me 
-        // from having to recreate bombs all of the time
-        // I can just reuse an inactive bomb when I need
-        // to
-        if (curBomb.active == true) {
-            curBomb.elevation = curBomb.elevation - (80.0 / 60.0);
-
-            // https://stackoverflow.com/questions/7641818/how-can-i-remove-the-decimal-part-from-javascript-number            
-            elevationText += Math.floor(curBomb.elevation) + " ";
-
-            // https://teropa.info/blog/2016/08/10/frequency-and-pitch.html
-            var curBomb = bombs[j];
-            curBomb.oscillator.frequency.value = curBomb.elevation;
-
-            // https://svgjs.com/docs/3.0/getting-started/
-            var bombImage = curBomb.img;
-            var bombText = curBomb.bText;
-            var bombdarImage = curBomb.bImg;
-
-            var physBombCord = logicalToPlayArea(
-                {
-                    x: curBomb.x,
-                    y: curBomb.elevation
-                }
-            );
-            bombImage.move(
-                physBombCord.x,
-                physBombCord.y
-            );
-            bombText.move(
-                physBombCord.x,
-                physBombCord.y
-            );
-
-            var physBombCord2 = logicalToBombdarArea(
-                {
-                    x: curBomb.x,
-                    y: curBomb.elevation
-                }
-            );
-            bombdarImage.move(
-                physBombCord2.x,
-                physBombCord2.y
-            );
-
-            // Turn the volume for the oscillator off when the 
-            // "bomb" gets below 50 "Martian Feet"
-            if (curBomb.elevation < impactElevation) {
-                curBomb.active = false;
-
-                // See if the bomb hit a house
-                var houseHit = false;
-                for(var i = 0; ((i < houses.length) && (!houseHit)); i++) {
-                    var aHouse = houses[i];
-                    if ((aHouse.hasBeenBlownToBits == false) && 
-                        (bombHitHouse(curBomb, aHouse))) {
-
-                        blowUpHouse(aHouse);
-
-                        // Likely an example of premature optimization
-                        // on my part
-                        houseHit = true; 
-                    }
-                }                
-            } 
-
-            // numUnexplodedHouses is not an efficient function
-            // but I don't care
-            if (numUnexplodedHouses() < 1) {
-                theEntireWorldHasBeenDestroyedByEvilWickedBrainwashingAliens = true;
-            }
-        }
-    }
-    
-    // Cheat and Sneek in house animation here also
-    for (var k = 0; k < houses.length; k++) {
-        var someHouse = houses[k];
-        if (someHouse.hasBeenBlownToBits) {
-            // Need to update the physics for each house part
-            for(var l = 0; l < someHouse.parts.length; l++) {
-                var someHousePart = someHouse.parts[l];
-                var mass;
-                var rI; 
-                if (someHousePart.type === "Window") {
-                    mass = gc_defaultWindowMass;
-                    rI = gc_defaultWindowRotationalInertia;
-                } else if (someHousePart.type = "Roof") {
-                    mass = gc_defaultRoofMass;
-                    rI = gc_defaultRoofRotationalInertia;
-                } else {
-                    // Assume house body
-                    mass = gc_defaultHouseMass;
-                    rI = gc_defaultHouseRotationalInertia;
-                }
-
-                // For now, we are only dealing with impact forces
-                // except for gravity
-                var pFX = someHousePart.fx;
-                if (Math.abs(pFX) > gc_floatingPointFudgeFactor) {
-                    someHousePart.ax += pFX / mass;
-
-                    /* Since this is a impact force for now,
-                       set it back to zero */ 
-                    someHousePart.fx = 0.0; 
-                }
-                var pFY = someHousePart.fy;
-                if (Math.abs(pFY) > gc_floatingPointFudgeFactor) {
-                    someHousePart.ay += pFY / mass;                  
-
-                    /* Since this is a impact force for now,
-                       set it back to zero */ 
-                    someHousePart.fy = 0.0; 
-
-                    // Account for gravity
-                    someHousePart.ay -= gc_gravitational_acceleration;
-                }
-                var pFR = someHousePart.fr;
-                if (Math.abs(pFR) > gc_floatingPointFudgeFactor) {
-                    someHousePart.ar += pFR / rI;
-
-                    /* Since this is a impact force for now,
-                       set it back to zero */ 
-                    someHousePart.fr = 0.0; 
-                }
-
-                // Now update velocity and position based on the accelerations
-                // that were calculated
-                someHousePart.vx += someHousePart.ax;
-                someHousePart.vy += someHousePart.ay;
-                someHousePart.vr += someHousePart.ar;
-
-                someHousePart.x += someHousePart.vx;
-                someHousePart.y += someHousePart.vy;
-                someHousePart.r += someHousePart.vr;
-
-                var window1Cord = logicalToPlayArea(
-                    {
-                        x: someHousePart.x,
-                        y: someHousePart.y
-                    }
-                );
-                someHousePart.i.move(window1Cord.x, window1Cord.y);
-                someHousePart.i.rotate(someHousePart.r);
-            }
-
-            // Ideally, we would stop doing this at some point
-            // but i'll get to that later. I probably need
-            // to conver this little code to TypeScript before
-            // I drive myself crazy...
-        }
-    }
-
-    // https://svgjs.com/docs/3.0/shape-elements/#svg-text
-    elevationTextObj.text("Elevations: " + elevationText);
 }
 
 function logicalToPlayArea(c) {
