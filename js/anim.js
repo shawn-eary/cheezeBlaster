@@ -493,6 +493,8 @@ function makeBomb() {
             if (someBomb.bSum === g_selectedVal) {
                 someBomb.active = false;
             }
+            bombImage.animate(2000, 0, 'now').attr({ fill: '#000' });
+            bombText.clear();
         };
     bombImage.click(
         bombClickFunc
