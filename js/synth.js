@@ -33,8 +33,6 @@ var gHeight = 600;
 
 // Hard coded for now 
 const c_numHouses = 4;
-const gc_bombWidth = 50;
-const gc_bombHeight = 20;
 
 const gc_defaultHouseMass = 20.0;
 const gc_defaultHouseRotationalInertia = 10.0;
@@ -97,9 +95,19 @@ var maxElevation = minElevation + elevationRange;
 var bombdarWidth = gWidth * 0.1;
 
 var playAreaWidth = gWidth - bombdarWidth;
+var playAreaHeight = gHeight;
 
 var houseWidth = playAreaWidth / 20;
 var houseHeight = houseWidth;
+
+// var houseWidth = playAreaWidth / 20;
+// var houseHeight = houseWidth;
+// const gc_bombWidth = 50;
+// const gc_bombHeight = 20;
+var gc_bombWidth = playAreaWidth / 10;
+var gc_bombHeight = playAreaHeight / 12;
+
+
 
 // The Bombda is always going to be small so
 // just pick a small but reasonable width

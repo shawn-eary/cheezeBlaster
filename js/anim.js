@@ -32,6 +32,23 @@ const gc_numAmmoPods = 6;
 const gc_defaultAmmoPodMass = 10.0;
 const gc_defaultAmmoPodRotationalInertia = 8.0;
 
+const gc_ammoPodColor = '#dcb3c6';
+const gc_ammoPodSelectedColor = '#9b84ff'; 
+
+g_selectedVal = 0;
+
+function recolorAmmo(v) {
+    for (var i = 0; i < g_ammoPods.length; i++) {
+        var somePod = g_ammoPods[i];
+        if (somePod.number === v) {
+            somePod.i.fill('#9b84ff');
+            somePod.selected = true;
+        } else {
+            somePod.i.fill('#dcb3c6');
+            somePod.selected = false;
+        }
+    }
+}
 
 function makeAmmoPod() {
     // I think it's okay to reuse numbers.
@@ -47,7 +64,7 @@ function makeAmmoPod() {
 
     var x = (ammoPodIndex + 1) * spacingBetweenPods; 
     var centeredX = x - (ammoPodWidth / 2);
-    ammoPodImage.fill('#dcb3c6');
+    ammoPodImage.fill(gc_ammoPodColor);
     var theY = impactElevation - (impactElevation / 10)
     var physAmmoPodCord= logicalToPlayArea(
         {
@@ -66,6 +83,15 @@ function makeAmmoPod() {
             add.tspan(theText).fill('#000').dx(whatDoesDXDo);
         }
     );
+
+    // https://svgjs.dev/docs/3.0/events/#element-click
+    ammoPodImage.click(        
+        function() {
+            g_selectedVal = ammoIntVal;
+            recolorAmmo(ammoIntVal);
+        } 
+    );
+
     ammoPodText.move(
         physAmmoPodCord.x, physAmmoPodCord.y
     );
@@ -88,7 +114,8 @@ function makeAmmoPod() {
         vy: 0.0,   // velocity y
         vr: 0.0,   // rotational velocity
         podText: ammoPodText,
-        number: ammoIntVal  // The answer the ammo pod holds
+        number: ammoIntVal,  // The answer the ammo pod holds
+        selected: false
     }
 
     g_ammoPods.push(ammoPod);
@@ -191,6 +218,7 @@ function updateFrame() {
                 physBombCord.x,
                 adjustedBombY
             );
+
             bombText.move(
                 physBombCord.x,
                 adjustedBombY
@@ -341,9 +369,6 @@ function makeBomb() {
     var bombX = Math.floor(Math.random() * playAreaWidth);
     // var bombX = Math.floor(Math.random() * 400.0);
 
-    // https://svgjs.com/docs/3.0/getting-started/
-    var bombImage = draw.rect(gc_bombWidth, gc_bombHeight);
-
     // Cheat and assume.  We have plenty of vertical
     // realestate in the Bombdar so just assign the
     // height to bombdarImageWidth
@@ -418,8 +443,10 @@ function makeBomb() {
     // https://stackoverflow.com/questions/596216/formula-to-determine-perceived-brightness-of-rgb-color
     const Y = 0.375 * r + 0.5 * g + 0.125 * b;
 
-    bombImage.fill(color);
     bombdarImage.fill('#ddd');
+
+    var bombImage = draw.rect(gc_bombWidth, gc_bombHeight);
+    bombImage.fill(color);
 
     // https://svgjs.dev/docs/3.0/shape-elements/#svg-text
     var bombString = digit1 + ' + ' + digit2;
@@ -436,9 +463,14 @@ function makeBomb() {
             }            
         }
     );
-    
+    // bombText.click(
+    //     bombClickFunc
+    // );
+
+
 
     // https://www.w3schools.com/js/js_objects.asp
+    var theSum = (digit1 + digit2);
     var someBomb = {
         elevation: bombElevation,
         originalElevation: bombElevation,
@@ -449,8 +481,23 @@ function makeBomb() {
         img: bombImage,
         bText: bombText,
         bImg: bombdarImage,
-        bSum: (digit1 + digit2)
+        bSum: theSum
     };
+    // Only one bomb can be selected at a time
+
+
+
+    // https://svgjs.com/docs/3.0/getting-started/
+    var bombClickFunc = 
+        function() {
+            if (someBomb.bSum === g_selectedVal) {
+                someBomb.active = false;
+            }
+        };
+    bombImage.click(
+        bombClickFunc
+    );
+
     bombs.push(someBomb);
 }
 
