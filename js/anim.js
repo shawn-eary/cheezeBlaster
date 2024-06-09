@@ -294,6 +294,8 @@ function updateFrame() {
                     /* Since this is a impact force for now,
                        set it back to zero */ 
                     someHousePart.fx = 0.0; 
+                } else {
+                    someHousePart.ax = 0.0;
                 }
                 var pFY = someHousePart.fy;
                 if (Math.abs(pFY) > gc_floatingPointFudgeFactor) {
@@ -302,10 +304,13 @@ function updateFrame() {
                     /* Since this is a impact force for now,
                        set it back to zero */ 
                     someHousePart.fy = 0.0; 
-
-                    // Account for gravity
-                    someHousePart.ay -= gc_gravitational_acceleration;
+                } else {
+                    someHousePart.ay = 0.0;
                 }
+
+                // Account for gravity
+                someHousePart.ay -= gc_gravitational_acceleration;
+
                 var pFR = someHousePart.fr;
                 if (Math.abs(pFR) > gc_floatingPointFudgeFactor) {
                     someHousePart.ar += pFR / rI;
@@ -313,6 +318,8 @@ function updateFrame() {
                     /* Since this is a impact force for now,
                        set it back to zero */ 
                     someHousePart.fr = 0.0; 
+                } else {
+                    someHousePart.ar = 0.0;
                 }
 
                 // Now update velocity and position based on the accelerations
@@ -331,8 +338,12 @@ function updateFrame() {
                         y: someHousePart.y
                     }
                 );
-                someHousePart.i.move(window1Cord.x, window1Cord.y);
-                someHousePart.i.rotate(someHousePart.r);
+
+                someHousePart.i.transform({
+                    rotate: someHousePart.r,
+                    positionX: window1Cord.x,
+                    positionY: window1Cord.y
+                });
             }
 
             // Ideally, we would stop doing this at some point

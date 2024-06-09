@@ -34,12 +34,12 @@ var gHeight = 600;
 // Hard coded for now 
 const c_numHouses = 4;
 
-const gc_defaultHouseMass = 20.0;
-const gc_defaultHouseRotationalInertia = 10.0;
-const gc_defaultWindowMass = 2.0;
-const gc_defaultWindowRotationalInertia = 1.0;
-const gc_defaultRoofMass = 10.0;
-const gc_defaultRoofRotationalInertia = 2.0;
+const gc_defaultHouseMass = 10.0;
+const gc_defaultHouseRotationalInertia = 8.0;
+const gc_defaultWindowMass = 3.0;
+const gc_defaultWindowRotationalInertia = 0.8;
+const gc_defaultRoofMass = 7.0;
+const gc_defaultRoofRotationalInertia = 1.6;
 
 const gc_floatingPointFudgeFactor = 0.01;
 
@@ -62,13 +62,14 @@ function getBoundedRandNum(min, max) {
 // Just picking numbers most out of thin air right now
 const gc_launch_angle_min = pi / 4.0;
 const gc_launch_angle_max = 3.0 * pi / 4.0;
-const gc_launch_magnitude_min = 20.0;
-const gc_launch_magnitude_max = 30.0;
+const gc_launch_magnitude_min = 8.0;
+const gc_launch_magnitude_max = 40.0;
 
-const gc_gravitational_acceleration = 2.0;
+// const gc_gravitational_acceleration = 2.0;
+const gc_gravitational_acceleration = 0.03;
 
-const gc_launch_rotation_min = -10.0;
-const gc_launch_rotation_max = 10.0;
+const gc_launch_rotation_min = -5.0;
+const gc_launch_rotation_max = 5.0;
 // #####################################################################
 // # END Constants                                                     #
 // #####################################################################
@@ -161,14 +162,14 @@ function blowUpHouse(h) {
     for (var i = 0; i < houseParts.length; i++) {
         var aPart = houseParts[i];
         // https://svgjs.dev/docs/3.0/animating/
-        aPart.i.animate(2000, 0, 'now').attr({ fill: '#000' });
+        // aPart.i.animate(8000, 0, 'now').attr({ fill: '#000' });
         
         var lA = getBoundedRandNum(gc_launch_angle_min, gc_launch_angle_max);
         var lM = getBoundedRandNum(gc_launch_magnitude_min, gc_launch_magnitude_max);
         var lR = getBoundedRandNum(gc_launch_rotation_min, gc_launch_rotation_max);
 
-        aPart.fx = lM * sine(lA);
-        aPart.fy = lM * cos(lA);
+        aPart.fx = lM * cos(lA);
+        aPart.fy = lM * sine(lA);
         aPart.fr = lR;
     }
 
