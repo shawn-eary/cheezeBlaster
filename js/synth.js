@@ -152,53 +152,73 @@ function numUnexplodedHouses() {
     return count;
 }
 
-// #########################################
-// # BEGIN: Written by Google Gemini       #
-// #########################################
+// ##############################################################
+// # BEGIN: Written by Google Gemini and Chat GPT               #
+// #                                                            #
+// #    One of the sources Gemini Used appears to be            #
+// #    https://noisehack.com/generate-noise-web-audio-api/     #
+// ##############################################################
 function playExplosion(force) {
     if (!window.AudioContext) {
-        throw new Error("Web Audio API not supported");
+      throw new Error("Web Audio API not supported");
     }
-
+  
     const audioCtx = new AudioContext();
-
-    // Create oscillator for white noise
-    const oscillator = audioCtx.createOscillator();
-    oscillator.type = "white";
-
+  
+    // Create ScriptProcessorNode for custom oscillator
+    const bufferSize = 4096;
+    const whiteNoise = audioCtx.createScriptProcessor(bufferSize, 1, 1);
+  
     // Create low-pass filter
     const filter = audioCtx.createBiquadFilter();
     filter.type = "lowpass";
-
+  
     // Gain node for volume control
     const gain = audioCtx.createGain();
-
+  
     // Connect nodes
-    oscillator.connect(filter);
+    whiteNoise.connect(filter);
     filter.connect(gain);
     gain.connect(audioCtx.destination);
-
+  
+    // Generate random white noise values in the audio process callback
+    whiteNoise.onaudioprocess = function(event) {
+      const outputBuffer = event.outputBuffer;
+      const outputData = outputBuffer.getChannelData(0);
+  
+      for (let i = 0; i < bufferSize; i++) {
+        // Generate random values between -1 and 1 for white noise
+        outputData[i] = Math.random() * 2 - 1;
+      }
+    };
+  
     // Set initial filter frequency (higher for stronger explosions)
     filter.frequency.setValueAtTime(force * 1000 + 500, audioCtx.currentTime);
-
-    // Play the sound with varying duration based on force
-    oscillator.start(audioCtx.currentTime);
-    oscillator.stop(audioCtx.currentTime + force * 0.2);
-
+  
+    // Play by starting the ScriptProcessorNode
+    whiteNoise.start();
+  
+    // Stop after a duration based on force
+    const stopTime = audioCtx.currentTime + force * 0.2;
+    whiteNoise.stop(stopTime);
+  
     // Apply gradual volume envelope (fade out)
     gain.gain.setValueAtTime(1, audioCtx.currentTime);
-    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + force * 0.15);
-
-    // Clean up after playback finishes
-    oscillator.onended = function() {
-        oscillator.disconnect();
-        filter.disconnect();
-        gain.disconnect();
+    gain.gain.linearRampToValueAtTime(0, stopTime + force * 0.15);
+  
+    // Cleanup after playback finishes
+    whiteNoise.onended = function() {
+      whiteNoise.disconnect();
+      filter.disconnect();
+      gain.disconnect();
     };
 }
-// #########################################
-// # END:   Written by Google Gemini       #
-// #########################################
+// ##############################################################
+// # BEGIN: Written by Google Gemini and Chat GPT               #
+// #                                                            #
+// #    One of the sources Gemini Used appears to be            #
+// #    https://noisehack.com/generate-noise-web-audio-api/     #
+// ##############################################################
 
 function blowUpHouse(h) {
     h.hasBeenBlownToBits = true;
