@@ -2,7 +2,7 @@
 MIT LICENSE
 https://mit-license.org/
 
-Copyright (c) 2021, 2020 Shawn Eary
+Copyright (c) 2024, 2021, 2020 Shawn Eary
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation
@@ -152,6 +152,54 @@ function numUnexplodedHouses() {
     return count;
 }
 
+// #########################################
+// # BEGIN: Written by Google Gemini       #
+// #########################################
+function playExplosion(force) {
+    if (!window.AudioContext) {
+        throw new Error("Web Audio API not supported");
+    }
+
+    const audioCtx = new AudioContext();
+
+    // Create oscillator for white noise
+    const oscillator = audioCtx.createOscillator();
+    oscillator.type = "white";
+
+    // Create low-pass filter
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = "lowpass";
+
+    // Gain node for volume control
+    const gain = audioCtx.createGain();
+
+    // Connect nodes
+    oscillator.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    // Set initial filter frequency (higher for stronger explosions)
+    filter.frequency.setValueAtTime(force * 1000 + 500, audioCtx.currentTime);
+
+    // Play the sound with varying duration based on force
+    oscillator.start(audioCtx.currentTime);
+    oscillator.stop(audioCtx.currentTime + force * 0.2);
+
+    // Apply gradual volume envelope (fade out)
+    gain.gain.setValueAtTime(1, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + force * 0.15);
+
+    // Clean up after playback finishes
+    oscillator.onended = function() {
+        oscillator.disconnect();
+        filter.disconnect();
+        gain.disconnect();
+    };
+}
+// #########################################
+// # END:   Written by Google Gemini       #
+// #########################################
+
 function blowUpHouse(h) {
     h.hasBeenBlownToBits = true;
 
@@ -159,6 +207,7 @@ function blowUpHouse(h) {
     // Since that is easy. Can do better
     // animations in the future
     var houseParts = h.parts;
+    var totalForce = 0.0;
     for (var i = 0; i < houseParts.length; i++) {
         var aPart = houseParts[i];
         // https://svgjs.dev/docs/3.0/animating/
@@ -171,9 +220,14 @@ function blowUpHouse(h) {
         aPart.fx = lM * cos(lA);
         aPart.fy = lM * sine(lA);
         aPart.fr = lR;
+
+        totalForce += aPart.fx;
+        totalForce += aPart.fy;
+        totalForce += aPart.fr;
     }
 
     // Need sound here too but that's later...
+    playExplosion(totalForce);
 }
 
 function bombHitHouse(b, h) {

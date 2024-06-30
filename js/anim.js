@@ -2,7 +2,7 @@
 MIT LICENSE
 https://mit-license.org/
 
-Copyright (c) 2021, 2020 Shawn Eary
+Copyright (c) 2024, 2021, 2020 Shawn Eary
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation
