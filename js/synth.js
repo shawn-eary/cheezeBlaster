@@ -176,7 +176,7 @@ function playExplosion(force) {
     // for stronger explosions    
     secondsToPlay = force;
     msToPlay = secondsToPlay * 1000;
-    filterFreq = force * 500 + 10;
+    filterFreq = (force - 0.8) * 700;  // Hack modification from original Gemini code
     gainOriginalValue = 0.7;
 
     // if (!window.AudioContext) {
@@ -279,9 +279,17 @@ function blowUpHouse(h) {
         totalForce += aPart.fr;
     }
 
-    // Need sound here too but that's later...
-    playExplosion(5.0);
-    // playExplosion(totalForce);
+    // Normalize explosion forces between 3 and 6
+    const maxForce = 
+        (gc_launch_angle_max + 
+        gc_launch_magnitude_max + 
+        gc_launch_rotation_max) * houseParts.length; 
+    const forceFloor = 1.0;
+    const forceCeiling = 7.0;
+    forceSpread = forceCeiling - forceFloor;
+    forceOffset = forceSpread * totalForce / maxForce;
+    normalizedForce = forceOffset + forceFloor;
+    playExplosion(normalizedForce);
 }
 
 function bombHitHouse(b, h) {
