@@ -2,7 +2,16 @@
 MIT LICENSE
 https://mit-license.org/
 
-Copyright (c) 2024, 2021, 2020 Shawn Eary
+Copyright (c) 2024, 2021, 2020 Shawn Eary, Gemini and Chat GPT
+
+  [Note: In many cases, it is impossible for me to tell from whom
+         or where Gemini and/or Chat GPT got their information
+         from. When I find an obvious source, I will cite it, but
+         when I do not know, I simply cite Chat GPT or Gemini
+         as applicable. This code is as much an exploratory
+         learning opportunity as it is anything else and it's
+         designed to be free even if I may charge for
+         distribution, packaging and/or support some day]
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation
@@ -73,6 +82,8 @@ const gc_launch_rotation_max = 5.0;
 // #####################################################################
 // # END Constants                                                     #
 // #####################################################################
+
+var g_audioCtx;
 
 // https://svgjs.com/docs/3.0/getting-started/
 var draw;
@@ -153,68 +164,90 @@ function numUnexplodedHouses() {
 }
 
 // ##############################################################
-// # BEGIN: Written by Google Gemini and Chat GPT               #
+// # BEGIN: Original drafts of this code were written by        #
+// #    Google Gemini and MS Bing Chat GPT. It has been         #
+// #    modified slightly by Shawn Eary as needed.              #
 // #                                                            #
 // #    One of the sources Gemini Used appears to be            #
 // #    https://noisehack.com/generate-noise-web-audio-api/     #
 // ##############################################################
 function playExplosion(force) {
-    if (!window.AudioContext) {
-      throw new Error("Web Audio API not supported");
-    }
-  
-    const audioCtx = new AudioContext();
+    // Longer durations, higher frequencies and larger amplitudes 
+    // for stronger explosions    
+    secondsToPlay = force;
+    msToPlay = secondsToPlay * 1000;
+    filterFreq = force * 500 + 10;
+    gainOriginalValue = 0.7;
+
+    // if (!window.AudioContext) {
+    //   throw new Error("Web Audio API not supported");
+    // }
+    // const audioCtx = new AudioContext();
   
     // Create ScriptProcessorNode for custom oscillator
     const bufferSize = 4096;
-    const whiteNoise = audioCtx.createScriptProcessor(bufferSize, 1, 1);
+    const whiteNoise = g_audioCtx.createScriptProcessor(bufferSize, 1, 1);
+
+    // Generate random white noise values in the audio process callback
+    whiteNoise.onaudioprocess = function(event) {
+        const outputBuffer = event.outputBuffer;
+        const outputData = outputBuffer.getChannelData(0);
+
+        for (let i = 0; i < bufferSize; i++) {
+            // Generate random values between -1 and 1 for white noise
+            outputData[i] = Math.random() * 2 - 1;
+        }
+    };
   
     // Create low-pass filter
-    const filter = audioCtx.createBiquadFilter();
+    const filter = g_audioCtx.createBiquadFilter();
     filter.type = "lowpass";
   
     // Gain node for volume control
-    const gain = audioCtx.createGain();
+    const gainNode = g_audioCtx.createGain();
   
     // Connect nodes
     whiteNoise.connect(filter);
-    filter.connect(gain);
-    gain.connect(audioCtx.destination);
-  
-    // Generate random white noise values in the audio process callback
-    whiteNoise.onaudioprocess = function(event) {
-      const outputBuffer = event.outputBuffer;
-      const outputData = outputBuffer.getChannelData(0);
-  
-      for (let i = 0; i < bufferSize; i++) {
-        // Generate random values between -1 and 1 for white noise
-        outputData[i] = Math.random() * 2 - 1;
-      }
-    };
-  
-    // Set initial filter frequency (higher for stronger explosions)
-    filter.frequency.setValueAtTime(force * 1000 + 500, audioCtx.currentTime);
-  
-    // Play by starting the ScriptProcessorNode
-    whiteNoise.start();
-  
-    // Stop after a duration based on force
-    const stopTime = audioCtx.currentTime + force * 0.2;
-    whiteNoise.stop(stopTime);
-  
+    filter.connect(gainNode);
+    // gainNode.gain.value = 0.5;
+    gainNode.gain.value = gainOriginalValue;
+    gainNode.connect(g_audioCtx.destination);
+    // gainNode.gain.value = 0.0;
+
+    filter.frequency.value = filterFreq;
+
+    // BEGIN: This is broke for some weird reason
     // Apply gradual volume envelope (fade out)
-    gain.gain.setValueAtTime(1, audioCtx.currentTime);
-    gain.gain.linearRampToValueAtTime(0, stopTime + force * 0.15);
-  
-    // Cleanup after playback finishes
-    whiteNoise.onended = function() {
-      whiteNoise.disconnect();
-      filter.disconnect();
-      gain.disconnect();
-    };
+    // https://developer.mozilla.org/en-US/docs/Web/API/AudioParam/linearRampToValueAtTime
+    // This is not working for unknown reasons
+    // gainNode.gain.linearRampToValueAtTime(0, msToPlay);
+    // END  : This is broke for some weird reason
+    // BEGIN: Alternate Code
+    // Hack because linearRampToValueAtTime isn't working
+    // Run every 60th of a second...
+    // https://developer.mozilla.org/en-US/docs/Web/API/setInterval
+    numAudioFrames = secondsToPlay * 60.0;
+    gainStepDown = gainOriginalValue / numAudioFrames;
+    dropVolumeId = setInterval(() => {
+            gainNode.gain.value -= gainStepDown;
+        }, 
+        1000.0 / 60.0
+    );
+    // END  : Alternate Code
+
+    // Stop after a duration based on force
+    // https://developer.mozilla.org/en-US/docs/Web/API/setTimeout
+    setTimeout(() => {
+        whiteNoise.disconnect();
+        filter.disconnect();
+        gainNode.disconnect();
+        clearInterval(dropVolumeId);
+      }, msToPlay); // Timeout in milliseconds
 }
 // ##############################################################
-// # BEGIN: Written by Google Gemini and Chat GPT               #
+// # BEGIN: Original drafts of this code were written by        #
+// #    Google Gemini and MS Bing Chat GPT. It has been         #
+// #    modified slightly by Shawn Eary as needed.              #
 // #                                                            #
 // #    One of the sources Gemini Used appears to be            #
 // #    https://noisehack.com/generate-noise-web-audio-api/     #
@@ -247,7 +280,8 @@ function blowUpHouse(h) {
     }
 
     // Need sound here too but that's later...
-    playExplosion(totalForce);
+    playExplosion(5.0);
+    // playExplosion(totalForce);
 }
 
 function bombHitHouse(b, h) {
@@ -428,7 +462,16 @@ function nukeBombs(justDeadOnes) {
 
 // https://stackoverflow.com/questions/879152/how-do-i-make-javascript-beep
 // https://stackoverflow.com/questions/14308029/playing-a-chord-with-oscillatornodes-using-the-web-audio-api
-function begin() {
+function begin() {        
+    if (!window.AudioContext) {
+        throw new Error("Web Audio API not supported");
+    }  
+    g_audioCtx = new AudioContext();
+
+    // Test
+    // playExplosion(5.0);
+    // return;
+
     // https://svgjs.com/docs/3.0/tutorials/
     // create SVG document and set its size
     // var draw = SVG('#gameArea').size(gWidth, gHeight);

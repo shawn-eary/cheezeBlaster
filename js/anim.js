@@ -365,10 +365,10 @@ function makeBomb() {
 
     // https://stackoverflow.com/questions/879152/how-do-i-make-javascript-beep
     // Set up bomb oscillator and gain
-    var someOscillator = audioCtx.createOscillator();
-    var someGain = audioCtx.createGain();
+    var someOscillator = g_audioCtx.createOscillator();
+    var someGain = g_audioCtx.createGain();
     someOscillator.connect(someGain);
-    someGain.connect(audioCtx.destination);
+    someGain.connect(g_audioCtx.destination);
 
     someGain.gain.value = 0.1; 
     someOscillator.frequency.value = bombElevation;
